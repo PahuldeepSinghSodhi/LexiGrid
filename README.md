@@ -1,12 +1,12 @@
-# LexiGrid 🧩
+# LexiGrid
 
 **LexiGrid** is a mobile-optimized 2D word puzzle game built entirely in Unity (C#). This project serves as a comprehensive showcase of clean software architecture, performant custom data structures, robust UI state management, and rigorous quality assurance practices.
 
-## 🚀 Overview
+## Overview
 
 Players connect adjacent letter tiles (horizontally, vertically, or diagonally) to form valid words within a time limit. The game features dynamic board generation ensuring at least one solvable word, configurable grid sizes (3x3, 4x4, 5x5), customizable timers, and a persistent local leaderboard.
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
 LexiGrid was engineered with scalability and performance in mind, avoiding Unity's heavy monobehavior overhead where possible in favor of pure C# data structures.
 
@@ -21,7 +21,7 @@ LexiGrid was engineered with scalability and performance in mind, avoiding Unity
 * **UI Transitions:** Screens are swapped using CanvasGroups, allowing for smooth alpha-fade transitions without the performance hit of instantiating/destroying UI elements at runtime.
 * **Data Persistence:** Player preferences (Grid Size, Timer) and Leaderboard JSON serialization are securely saved using local application persistent data paths.
 
-## 🧪 Quality Assurance & Testing
+## Quality Assurance & Testing
 
 A strong emphasis was placed on testability and QA documentation throughout development:
 * **Automated Unit Tests:** The project includes a comprehensive suite of Unity Test Framework scripts covering the Trie, MinHeap, Scoring Engine, and Board Generator logic.
@@ -30,7 +30,7 @@ A strong emphasis was placed on testability and QA documentation throughout deve
   * **Bug Log:** Tracking resolved integration and logic errors.
   * **Regression Reports:** Ensuring stability across major refactors.
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### Prerequisites
 * **Unity Editor:** Version 6000.5.10f1 (Unity 6.5) or newer.
@@ -43,5 +43,6 @@ A strong emphasis was placed on testability and QA documentation throughout deve
 4. Ensure your Game View is set to a Portrait aspect ratio (e.g., `1080x1920`).
 5. Press **Play** in the editor.
 
-## 📱 Mobile Deployment
+## Mobile Deployment
+
 While currently built for the standalone target, the codebase is 100% mobile-ready. The responsive UI anchors and EventSystem drag handlers require zero code modifications to compile and run smoothly on Android or iOS. Simply switch the Build Target in Unity's Build Settings and export the APK/Xcode project.
