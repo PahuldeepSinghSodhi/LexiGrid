@@ -1,0 +1,94 @@
+using System.Collections.Generic;
+using UnityEngine;
+using TMPro;
+
+namespace LexiGrid.UI
+{
+    /// <summary>
+    /// In-game heads-up display.
+    /// </summary>
+    public class HUDView : MonoBehaviour
+    {
+        [SerializeField] private TextMeshProUGUI _scoreText;
+        [SerializeField] private TextMeshProUGUI _timerText;
+        [SerializeField] private TextMeshProUGUI _currentWordText;
+        [SerializeField] private TextMeshProUGUI _foundWordsText;
+        [SerializeField] private TextMeshProUGUI _wordCountText;
+
+        private List<string> _foundWords = new List<string>();
+
+        /// <summary>
+        /// Updates the score display.
+        /// </summary>
+        public void UpdateScore(int score)
+        {
+            if (_scoreText != null)
+            {
+                _scoreText.text = $"Score: {score}";
+            }
+        }
+
+        /// <summary>
+        /// Updates the timer display.
+        /// </summary>
+        public void UpdateTimer(float secondsRemaining)
+        {
+            if (_timerText != null)
+            {
+                int minutes = Mathf.FloorToInt(secondsRemaining / 60);
+                int seconds = Mathf.FloorToInt(secondsRemaining % 60);
+                _timerText.text = $"{minutes:00}:{seconds:00}";
+                
+                _timerText.color = secondsRemaining < 10f ? Color.red : Color.white;
+            }
+        }
+
+        /// <summary>
+        /// Updates the current word being dragged.
+        /// </summary>
+        public void UpdateCurrentWord(string word, bool isValidPrefix)
+        {
+            if (_currentWordText != null)
+            {
+                _currentWordText.text = word;
+                _currentWordText.color = isValidPrefix ? Color.green : Color.red;
+            }
+        }
+
+        /// <summary>
+        /// Adds a found word to the history.
+        /// </summary>
+        public void AddFoundWord(string word, int pointsEarned)
+        {
+            _foundWords.Add($"{word} (+{pointsEarned})");
+            
+            if (_foundWordsText != null)
+            {
+                int start = Mathf.Max(0, _foundWords.Count - 5);
+                _foundWordsText.text = string.Join("\n", _foundWords.GetRange(start, _foundWords.Count - start));
+            }
+
+            if (_wordCountText != null)
+            {
+                _wordCountText.text = $"Words: {_foundWords.Count}";
+            }
+        }
+
+        /// <summary>
+        /// Resets the HUD to initial state.
+        /// </summary>
+        public void Reset()
+        {
+            _foundWords.Clear();
+            UpdateScore(0);
+            UpdateCurrentWord("", true);
+            if (_foundWordsText != null) _foundWordsText.text = "";
+            if (_wordCountText != null) _wordCountText.text = "Words: 0";
+            if (_timerText != null)
+            {
+                _timerText.text = "00:00";
+                _timerText.color = Color.white;
+            }
+        }
+    }
+}
