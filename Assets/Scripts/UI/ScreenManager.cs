@@ -63,6 +63,8 @@ namespace LexiGrid.UI
             {
                 StopCoroutine(_transitionCoroutine);
             }
+            foreach (var group in GetComponentsInChildren<CanvasGroup>(true))
+                if (group != _currentScreen && group != screen) SetScreenActive(group, false);
             _transitionCoroutine = StartCoroutine(FadeTransition(screen));
         }
 
@@ -71,6 +73,8 @@ namespace LexiGrid.UI
             // Fade out current screen
             if (_currentScreen != null)
             {
+                _currentScreen.interactable = false;
+                _currentScreen.blocksRaycasts = false;
                 yield return StartCoroutine(FadeCanvasGroup(_currentScreen, 1f, 0f));
                 SetScreenActive(_currentScreen, false);
             }
@@ -78,8 +82,9 @@ namespace LexiGrid.UI
             // Fade in new screen
             if (target != null)
             {
-                target.alpha = 0f;
                 SetScreenActive(target, true);
+                target.alpha = 0f;
+                _currentScreen = target;
                 yield return StartCoroutine(FadeCanvasGroup(target, 0f, 1f));
                 _currentScreen = target;
             }
@@ -107,7 +112,7 @@ namespace LexiGrid.UI
             cg.gameObject.SetActive(active);
             cg.interactable = active;
             cg.blocksRaycasts = active;
-            if (active) cg.alpha = 1f;
+            cg.alpha = active ? 1f : 0f;
         }
 
         private void HideAllImmediate()

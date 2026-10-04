@@ -35,11 +35,12 @@ namespace LexiGrid.UI
         {
             if (_timerText != null)
             {
-                int minutes = Mathf.FloorToInt(secondsRemaining / 60);
-                int seconds = Mathf.FloorToInt(secondsRemaining % 60);
+                int total = Mathf.CeilToInt(Mathf.Max(0, secondsRemaining));
+                int minutes = total / 60;
+                int seconds = total % 60;
                 _timerText.text = $"{minutes:00}:{seconds:00}";
                 
-                _timerText.color = secondsRemaining < 10f ? Color.red : Color.white;
+                _timerText.color = secondsRemaining < 10f ? new Color(1f, 0.45f, 0.48f) : Color.white;
             }
         }
 
@@ -50,9 +51,14 @@ namespace LexiGrid.UI
         {
             if (_currentWordText != null)
             {
-                _currentWordText.text = word;
-                _currentWordText.color = isValidPrefix ? Color.green : Color.red;
+                _currentWordText.text = string.IsNullOrEmpty(word) ? "Drag across letters to build a word" : word;
+                _currentWordText.color = isValidPrefix ? new Color(0.4f, 0.92f, 0.76f) : new Color(1f, 0.45f, 0.48f);
             }
+        }
+
+        public void ShowFeedback(string message)
+        {
+            if (_currentWordText != null) _currentWordText.text = message;
         }
 
         /// <summary>

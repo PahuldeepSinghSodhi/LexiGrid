@@ -14,6 +14,9 @@ namespace LexiGrid.UI
     {
         private List<Tile> _selectedTiles = new List<Tile>();
         private bool _isDragging;
+        private bool _dragMoved;
+        private Tile _downTile;
+        private bool _downSelected;
         private Trie _trie;
         private Camera _mainCamera;
         
@@ -23,6 +26,7 @@ namespace LexiGrid.UI
         public event System.Action<string> OnWordSubmitted;
         public event System.Action<string, bool> OnPathUpdated;
         public event System.Action OnSelectionCleared;
+        public event System.Action<string> OnWordRejected;
 
         /// <summary>
         /// Initializes the InputManager with a trie.
@@ -34,42 +38,64 @@ namespace LexiGrid.UI
             _eventSystem = EventSystem.current;
             if (_graphicRaycaster == null)
             {
-                _graphicRaycaster = FindObjectOfType<GraphicRaycaster>();
+                _graphicRaycaster = FindAnyObjectByType<GraphicRaycaster>();
             }
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (eventData.button != PointerEventData.InputButton.Left || _isDragging) return;
             _isDragging = true;
-            ClearSelection();
-            ProcessTileUnderPointer(eventData);
+            _dragMoved = false;
+            _downTile = GetTileUnderPointer(eventData);
+            _downSelected = _selectedTiles.Contains(_downTile);
+            if (_downTile == null) { _isDragging = false; return; }
+            if (!_downSelected)
+            {
+                if (_selectedTiles.Count > 0 && !IsAdjacent(_selectedTiles[_selectedTiles.Count - 1], _downTile)) ClearSelection();
+                ProcessTile(_downTile);
+            }
         }
 
         public void OnDrag(PointerEventData eventData)
         {
             if (!_isDragging) return;
-            ProcessTileUnderPointer(eventData);
+            if (!_dragMoved && _downSelected) ProcessTile(_downTile);
+            _dragMoved = true;
+            ProcessTile(GetTileUnderPointer(eventData));
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
             if (!_isDragging) return;
             _isDragging = false;
+            if (!_dragMoved)
+            {
+                if (_downSelected) TrimSelection(_selectedTiles.IndexOf(_downTile));
+                return;
+            }
+            SubmitSelection();
+        }
+
+        public void SubmitSelection()
+        {
+            _isDragging = false;
 
             string word = GetCurrentWord();
-            // In actual usage, get min word length from ScoringEngine, assuming it's statically accessible or configured
-            if (word.Length >= 3 && _trie != null && _trie.Search(word)) // Defaulted to 3 for fallback
+            ClearSelection();
+            if (word.Length >= ScoringEngine.MinWordLength && _trie != null && _trie.Search(word))
             {
                 OnWordSubmitted?.Invoke(word);
             }
-            
-            ClearSelection();
+            if (word.Length > 0 && (word.Length < ScoringEngine.MinWordLength || _trie == null || !_trie.Search(word)))
+                OnWordRejected?.Invoke(word.Length < ScoringEngine.MinWordLength ? "Use at least 3 letters" : "Not in the dictionary. Try another path.");
         }
 
-        private void ProcessTileUnderPointer(PointerEventData eventData)
+        private void ProcessTile(Tile tile)
         {
-            Tile tile = GetTileUnderPointer(eventData);
             if (tile == null || tile.IsUsed) return;
+            int selected = _selectedTiles.IndexOf(tile);
+            if (selected >= 0) { TrimSelection(selected + 1); return; }
 
             if (_selectedTiles.Count == 0)
             {
@@ -89,7 +115,21 @@ namespace LexiGrid.UI
         {
             _selectedTiles.Add(tile);
             tile.SetSelected(true);
-            
+            UpdatePath();
+        }
+
+        private void TrimSelection(int keep)
+        {
+            if (keep < 0) return;
+            for (int i = _selectedTiles.Count - 1; i >= keep; i--)
+            { _selectedTiles[i].ResetVisuals(); _selectedTiles.RemoveAt(i); }
+            UpdatePath();
+        }
+
+        public void UndoLastSelection() => TrimSelection(Mathf.Max(0, _selectedTiles.Count - 1));
+
+        private void UpdatePath()
+        {
             string currentWord = GetCurrentWord();
             bool isValidPrefix = _trie == null || _trie.StartsWith(currentWord);
             
@@ -150,5 +190,15 @@ namespace LexiGrid.UI
             _selectedTiles.Clear();
             OnSelectionCleared?.Invoke();
         }
+
+        public void CancelSelection()
+        {
+            _isDragging = false;
+            ClearSelection();
+        }
+
+        private void OnDisable() => CancelSelection();
+        private void OnApplicationFocus(bool focused) { if (!focused && _isDragging) CancelSelection(); }
+        private void OnApplicationPause(bool paused) { if (paused && _isDragging) CancelSelection(); }
     }
 }

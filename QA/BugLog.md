@@ -1,0 +1,9 @@
+# QA Bug Log: LexiGrid
+
+| Bug ID | Summary | Steps to Reproduce | Severity | Status | Root Cause | Fix Applied |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| BUG-001 | Trie prefix check fails for uppercase input | 1. Launch game.<br>2. Swipe a valid word using the uppercase grid letters. | Critical | Fixed | Missing case normalization in the `Trie.StartsWith` path during gameplay swipe. Grid letters are uppercase but Trie stored lowercase. | Added `ToLowerInvariant()` conversion in `Trie.Search` and `Trie.StartsWith`. |
+| BUG-002 | MinHeap eviction logic fails on tie scores | 1. Fill leaderboard with 10 scores.<br>2. Achieve a score exactly equal to the lowest score on the board. | Major | Fixed | `TryInsertIfBetter` used `>=` instead of `>` for comparison. This incorrectly inserted tie scores, causing leaderboard to grow beyond `maxSize`. | Changed comparison to strictly greater-than (`>`). |
+| BUG-003 | Grid adjacency check allows diagonal wrap-around | 1. Select tile at (0,3).<br>2. Select tile at (1,0). | Major | Fixed | Adjacency check only compared row/col difference without bounds validation, treating opposite edges as adjacent. | `GetAdjacentCells` now properly uses `Math.Max`/`Math.Min` to constrain within grid bounds. |
+| BUG-004 | Score display shows stale value after round restart | 1. Finish a round with a score > 0.<br>2. Start a new round.<br>3. Observe HUD score. | Minor | Fixed | `HUD.Reset()` was not called before `StartNewRound` updates. | Added explicit `HUD.Reset()` call at the beginning of `StartNewRound`. |
+| BUG-005 | Dictionary loading blocks the main thread | 1. Launch the game.<br>2. Observe screen freeze for 2-3 seconds. | Minor | Fixed | Synchronous dictionary loading in `Start()` processed 350,000+ words at once. | Implemented `LoadFromTextAssetAsync` coroutine that batches 1000 words per frame with a progress callback. |

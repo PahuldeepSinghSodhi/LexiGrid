@@ -51,6 +51,7 @@ namespace LexiGrid.Core
         private float _lastWordTime;
         private HashSet<string> _foundWordsThisRound;
         private int _wordsFoundThisRound;
+        private readonly ComboTracker _combo = new ComboTracker();
 
         public GameState CurrentState => _currentState;
         public int CurrentScore => _currentScore;
@@ -73,6 +74,12 @@ namespace LexiGrid.Core
             _dictionaryManager = new DictionaryManager();
             _leaderboard = PersistenceManager.LoadLeaderboard();
             _foundWordsThisRound = new HashSet<string>();
+            if (_inputManager != null && _hudView != null)
+            {
+                _inputManager.OnPathUpdated += _hudView.UpdateCurrentWord;
+                _inputManager.OnSelectionCleared += ClearCurrentWord;
+                _inputManager.OnWordRejected += OnWordRejected;
+            }
 
             TransitionTo(GameState.Splash);
         }
@@ -81,7 +88,7 @@ namespace LexiGrid.Core
         {
             if (_currentState == GameState.Playing)
             {
-                _timeRemaining -= Time.deltaTime;
+                _timeRemaining = Mathf.Max(0, _timeRemaining - Time.deltaTime);
 
                 if (_hudView != null)
                 {
@@ -166,6 +173,7 @@ namespace LexiGrid.Core
         /// </summary>
         public void StartNewRound()
         {
+            if (_dictionaryManager == null || !_dictionaryManager.IsLoaded || _dictionaryManager.WordCount == 0) return;
             // Read settings
             _gridSize = SettingsScreen.GetSavedGridSize();
             _roundDuration = SettingsScreen.GetSavedDuration();
@@ -176,6 +184,7 @@ namespace LexiGrid.Core
             _foundWordsThisRound.Clear();
             _wordsFoundThisRound = 0;
             _lastWordTime = Time.time;
+            _combo.Reset();
 
             if (_hudView != null)
             {
@@ -195,6 +204,8 @@ namespace LexiGrid.Core
             if (_inputManager != null)
             {
                 _inputManager.Initialize(_dictionaryManager.Dictionary);
+                _inputManager.CancelSelection();
+                _inputManager.OnWordSubmitted -= OnWordSubmitted;
                 _inputManager.OnWordSubmitted += OnWordSubmitted;
             }
 
@@ -204,10 +215,15 @@ namespace LexiGrid.Core
 
         private void OnWordSubmitted(string word)
         {
-            if (_currentState != GameState.Playing) return;
+            if (_currentState != GameState.Playing || _timeRemaining <= 0) return;
 
             string lowerWord = word.ToLowerInvariant();
-            if (_foundWordsThisRound.Contains(lowerWord)) return;
+            if (_foundWordsThisRound.Contains(lowerWord))
+            {
+                _combo.Reset();
+                _hudView?.ShowFeedback("Already found this round");
+                return;
+            }
 
             float timeSinceLastWord = Time.time - _lastWordTime;
             int score = ScoringEngine.CalculateFinalScore(word.Length, timeSinceLastWord);
@@ -218,11 +234,15 @@ namespace LexiGrid.Core
             _foundWordsThisRound.Add(lowerWord);
             _wordsFoundThisRound++;
             _lastWordTime = Time.time;
+            float bonus = _combo.Accept(Time.time, _timeRemaining);
+            _timeRemaining += bonus;
 
             if (_hudView != null)
             {
                 _hudView.UpdateScore(_currentScore);
                 _hudView.AddFoundWord(word, score);
+                _hudView.UpdateTimer(_timeRemaining);
+                _hudView.ShowFeedback($"{word}  +{score}" + (bonus > 0 ? "  +2s combo!" : ""));
             }
         }
 
@@ -233,12 +253,14 @@ namespace LexiGrid.Core
             if (_inputManager != null)
             {
                 _inputManager.OnWordSubmitted -= OnWordSubmitted;
+                _inputManager.CancelSelection();
             }
 
             // Save to leaderboard
             string playerName = "Player";
             LeaderboardEntry newEntry = new LeaderboardEntry(playerName, _currentScore);
-            bool isNewHighScore = _leaderboard.TryInsertIfBetter(newEntry, _leaderboardMaxSize);
+            bool isNewHighScore = _currentScore > 0 && _currentScore > GetBestScore();
+            if (_currentScore > 0) _leaderboard.TryInsertIfBetter(newEntry, _leaderboardMaxSize);
             PersistenceManager.SaveLeaderboard(_leaderboard);
 
             // Show Game Over screen
@@ -298,6 +320,24 @@ namespace LexiGrid.Core
             if (_leaderboard == null || _leaderboard.IsEmpty) return 0;
             var sorted = _leaderboard.GetSortedDescending();
             return sorted.Length > 0 ? sorted[0].Score : 0;
+        }
+
+        private void ClearCurrentWord() => _hudView?.UpdateCurrentWord("", true);
+        private void OnWordRejected(string message)
+        {
+            _combo.Reset();
+            _hudView?.ShowFeedback(message);
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
+            if (_inputManager == null) return;
+            _inputManager.OnWordSubmitted -= OnWordSubmitted;
+            _inputManager.OnSelectionCleared -= ClearCurrentWord;
+            if (_hudView == null) return;
+            _inputManager.OnPathUpdated -= _hudView.UpdateCurrentWord;
+            _inputManager.OnWordRejected -= OnWordRejected;
         }
     }
 }

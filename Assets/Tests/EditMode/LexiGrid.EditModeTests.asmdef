@@ -1,0 +1,6 @@
+{
+  "name": "LexiGrid.EditModeTests",
+  "references": ["LexiGrid.Runtime"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}

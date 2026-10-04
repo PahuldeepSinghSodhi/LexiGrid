@@ -130,5 +130,27 @@ namespace LexiGrid.Tests
             
             Assert.IsTrue(generator.HasValidWord(board, trie));
         }
+
+        [Test]
+        public void GenerateSolvableBoard_ExhaustedAttempts_EmbedsValidWord()
+        {
+            var trie = new Trie(); trie.Insert("abcdef");
+            var generator = new BoardGenerator(3);
+            var board = generator.GenerateSolvableBoard(trie, 0);
+            Assert.IsTrue(generator.HasValidWord(board, trie));
+        }
+
+        [Test]
+        public void GenerateSolvableBoard_EmptyDictionary_ThrowsClearError()
+        {
+            Assert.Throws<System.InvalidOperationException>(() => new BoardGenerator(3).GenerateSolvableBoard(new Trie(), 0));
+        }
+
+        [Test]
+        public void GenerateSolvableBoard_NoWordFits_ThrowsClearError()
+        {
+            var trie = new Trie(); trie.Insert("abcdefghijklmnop");
+            Assert.Throws<System.InvalidOperationException>(() => new BoardGenerator(3).GenerateSolvableBoard(trie, 0));
+        }
     }
 }

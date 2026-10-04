@@ -59,3 +59,11 @@ sysinfo.txt
 
 # Crashlytics generated file
 crashlytics-build.properties
+
+# Generated clean-project asset copies are recreated by Start-Game.ps1.
+UnityProject/Assets/
+UnityProject/Assets.meta
+
+# Local runtime logs and personal scores are not source assets.
+*.log
+leaderboard.json

@@ -149,5 +149,20 @@ namespace LexiGrid.DataStructures
                 Dfs(kvp.Value, currentPrefix + kvp.Key, words);
             }
         }
+
+        public bool TryFindWord(int minLength, int maxLength, out string word)
+        {
+            return FindBoundedWord(_root, "", minLength, maxLength, out word);
+        }
+
+        private bool FindBoundedWord(TrieNode node, string prefix, int minLength, int maxLength, out string word)
+        {
+            word = null;
+            if (prefix.Length >= minLength && node.IsEndOfWord) { word = prefix; return true; }
+            if (prefix.Length >= maxLength) return false;
+            foreach (var child in node.Children)
+                if (FindBoundedWord(child.Value, prefix + child.Key, minLength, maxLength, out word)) return true;
+            return false;
+        }
     }
 }

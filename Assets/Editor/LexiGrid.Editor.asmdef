@@ -1,0 +1,5 @@
+{
+  "name": "LexiGrid.Editor",
+  "references": ["LexiGrid.Runtime", "UnityEngine.UI", "Unity.TextMeshPro"],
+  "includePlatforms": ["Editor"]
+}

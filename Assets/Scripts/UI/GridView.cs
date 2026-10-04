@@ -31,12 +31,26 @@ namespace LexiGrid.UI
             }
 
             int totalTiles = gridSize * gridSize;
-            for (int i = 0; i < totalTiles; i++)
+            foreach (GameObject pooled in _tilePool) pooled.SetActive(false);
+            for (int i = _tilePool.Count; i < totalTiles; i++)
             {
                 GameObject tileObj = Instantiate(_tilePrefab, _gridParent);
                 tileObj.SetActive(false);
                 _tilePool.Add(tileObj);
             }
+            ResizeCells();
+        }
+
+        private void OnRectTransformDimensionsChange() => ResizeCells();
+
+        private void ResizeCells()
+        {
+            if (_gridLayout == null || _gridSize <= 0) return;
+            RectTransform rect = _gridLayout.transform as RectTransform;
+            float available = Mathf.Min(rect.rect.width - _gridLayout.padding.horizontal,
+                rect.rect.height - _gridLayout.padding.vertical);
+            float side = Mathf.Max(1, (available - _gridLayout.spacing.x * (_gridSize - 1)) / _gridSize);
+            _gridLayout.cellSize = new Vector2(side, side);
         }
 
         /// <summary>

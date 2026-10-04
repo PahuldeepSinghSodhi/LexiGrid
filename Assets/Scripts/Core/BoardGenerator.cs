@@ -115,9 +115,16 @@ namespace LexiGrid.Core
                 }
             }
             
-            // Console.WriteLine or similar fallback would be used here, 
-            // returning the last board for now.
-            return GenerateBoard(); 
+            if (!trie.TryFindWord(3, _gridSize * _gridSize, out string guaranteedWord))
+                throw new InvalidOperationException("The dictionary has no word that fits this board.");
+            char[,] fallback = GenerateBoard();
+            for (int i = 0; i < guaranteedWord.Length; i++)
+            {
+                int row = i / _gridSize;
+                int col = row % 2 == 0 ? i % _gridSize : _gridSize - 1 - i % _gridSize;
+                fallback[row, col] = char.ToUpperInvariant(guaranteedWord[i]);
+            }
+            return fallback;
         }
 
         /// <summary>

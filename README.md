@@ -1,48 +1,69 @@
 # LexiGrid
 
-**LexiGrid** is a mobile-optimized 2D word puzzle game built entirely in Unity (C#). This project serves as a comprehensive showcase of clean software architecture, performant custom data structures, robust UI state management, and rigorous quality assurance practices.
+A timed word-grid puzzle with a Unity/C# core, custom Trie and MinHeap, QA documentation, and a locally playable browser preview.
 
-## Overview
+Connect neighbouring letters horizontally, vertically or diagonally. Find distinct words before time runs out, correct your selection by retracing, and earn extra time with quick two-word combos.
 
-Players connect adjacent letter tiles (horizontally, vertically, or diagonally) to form valid words within a time limit. The game features dynamic board generation ensuring at least one solvable word, configurable grid sizes (3x3, 4x4, 5x5), customizable timers, and a persistent local leaderboard.
+## Play locally
 
-## Technical Architecture
+With Node.js available, run from the repository root:
 
-LexiGrid was engineered with scalability and performance in mind, avoiding Unity's heavy monobehavior overhead where possible in favor of pure C# data structures.
+```powershell
+./Start-Game.ps1
+```
 
-### Performant Data Structures
-* **Trie (Prefix Tree):** The entire 350,000+ word dictionary is parsed and loaded into a custom Trie. This allows for lightning-fast `O(L)` validation for both exact word matches and valid prefix checking while the player drags their finger across the board.
-* **Min-Heap:** The top 10 high scores are managed using a custom Min-Heap implementation, ensuring `O(log N)` insertions and avoiding the overhead of sorting full lists every time a score is submitted.
-* **Weighted Letter Distribution:** The board generator utilizes a standard English letter frequency distribution algorithm rather than pure random generation, ensuring balanced and playable boards.
+Then open **http://127.0.0.1:8765/** and choose **Play a round**. The launcher starts a localhost-only server; no npm packages or cloud services are needed. On other platforms, run `node Play/server.mjs` and open the same address.
 
-### UI & State Management
-* **State Machine Pattern:** Game states (Splash, Main Menu, Playing, Game Over) are decoupled from the core logic and managed via a central `GameManager`.
-* **Event-Driven Input:** Touch/Mouse input is handled natively through Unity's EventSystems (`IPointerDownHandler`, `IDragHandler`, `IPointerUpHandler`), providing seamless native mobile touch support out of the box.
-* **UI Transitions:** Screens are swapped using CanvasGroups, allowing for smooth alpha-fade transitions without the performance hit of instantiating/destroying UI elements at runtime.
-* **Data Persistence:** Player preferences (Grid Size, Timer) and Leaderboard JSON serialization are securely saved using local application persistent data paths.
+This is a **JavaScript browser preview, not a Unity WebGL export**. It uses the project's real 358,612-word dictionary and mirrors the Trie validation, neighbouring-tile rules, length/speed scoring, board-solvability check and top-10 MinHeap. Browser settings/scores are stored in localStorage, separately from Unity PlayerPrefs/JSON.
 
-## Quality Assurance & Testing
+## Controls and combo rules
 
-A strong emphasis was placed on testability and QA documentation throughout development:
-* **Automated Unit Tests:** The project includes a comprehensive suite of Unity Test Framework scripts covering the Trie, MinHeap, Scoring Engine, and Board Generator logic.
-* **QA Artifacts:** Detailed testing documentation is included to demonstrate professional QA processes:
-  * **Test Plan:** Covering boundary values, state transitions, and edge cases.
-  * **Bug Log:** Tracking resolved integration and logic errors.
-  * **Regression Reports:** Ensuring stability across major refactors.
+- Hold and drag across adjacent letters; release to submit. Alternatively, tap tiles and use **Submit selection** or Enter. Keyboard users can activate a tile with Space.
+- Tap a selected tile to remove it and every later letter. Hold and retrace to remove later letters while keeping the tile you returned to.
+- **Undo last letter** / Backspace removes one letter. **Clear selection** / Escape removes the whole path. A disconnected tap starts a new path.
+- Words require at least three letters. A tile cannot repeat in one path, and each word scores once per round. Rejected submissions clear automatically.
+- Each non-overlapping pair of distinct valid words accepted **less than five seconds apart** earns **+2 seconds**. Invalid, too-short or duplicate submissions break the pair. Expired rounds cannot be revived.
+- Existing base scores remain 100 / 400 / 800 / 1,200 / 2,000 for 3 / 4 / 5 / 6 / 7+ letters. Speed multipliers remain 1.5x below five seconds and 1.25x from five to below ten seconds.
 
-## Getting Started
+![Browser preview with undo controls and a confirmed two-second combo](Play/screenshots/selection-combo-update.jpg)
 
-### Prerequisites
-* **Unity Editor:** Version 6000.5.10f1 (Unity 6.5) or newer.
-* **Modules:** Windows/Mac Standalone Build Support (or Android/iOS Build Support for mobile deployment).
+## Run Unity
 
-### Running the Project
-1. Clone this repository: `git clone https://github.com/PahuldeepSinghSodhi/LexiGrid.git`
-2. Add the project folder in Unity Hub and open it.
-3. Open the main scene located at `Assets/Scenes/GameScene.unity`.
-4. Ensure your Game View is set to a Portrait aspect ratio (e.g., `1080x1920`).
-5. Press **Play** in the editor.
+The prepared clean project targets **Unity 6000.5.10f1**. Activate an eligible Unity licence, then run:
 
-## Mobile Deployment
+```powershell
+./Start-Game.ps1 -Unity
+```
 
-While currently built for the standalone target, the codebase is 100% mobile-ready. The responsive UI anchors and EventSystem drag handlers require zero code modifications to compile and run smoothly on Android or iOS. Simply switch the Build Target in Unity's Build Settings and export the APK/Xcode project.
+The launcher synchronizes canonical `Assets/Scripts`, `Assets/Editor`, `Assets/Tests` and `Assets/Resources` into `UnityProject/Assets`. In the editor, use **LexiGrid > Create or rebuild playable scene**, then press Play. The new builder creates `Assets/Scenes/LexiGrid.unity` and generated prefabs/resources in the staged project. The repository's existing `GameScene.unity`, legacy `AutoBuilder` and other assets remain preserved.
+
+For a Windows executable, use `./Start-Game.ps1 -Build` after activation. The builder configures a resizable 1440 x 900 window. Native scene generation, Play Mode and the Windows build remain **unverified in this environment**: the attempted Unity build stopped because no active Editor licence was available. Compilation alone does not establish native runtime correctness or mobile readiness.
+
+Full setup and limitations: [RUNNING.md](RUNNING.md). Complete update description: [PROJECT_UPDATES.md](PROJECT_UPDATES.md).
+
+## Architecture
+
+- **Trie:** exact and prefix validation; the C# implementation follows one node per letter, O(L) in word length.
+- **Board generator:** English-frequency-weighted letters, DFS with Trie prefix pruning, and a guaranteed neighbouring word placement if random retries are exhausted. This guarantees a fitting word, not balanced difficulty.
+- **MinHeap:** retains the best ten scores with O(log N) insertion; N is the bounded leaderboard size.
+- **GameManager and event-driven input:** round state, score, timer, selection feedback, duplicate protection and combo tracking.
+- **Unity UI:** CanvasGroup transitions, TextMesh Pro, square grid cells, tile reuse and desktop/tall-window reflow. Native visual/device testing is still required.
+- **Browser UI:** responsive dark/mint interface, selectable paths, Web Worker dictionary loading, local settings and leaderboard.
+
+## Verification
+
+| Check | Latest verified result | Scope |
+|---|---|---|
+| C# tests | 62 passed | NUnit/Mono: 54 original cases, 3 board-fallback cases and 5 combo cases; not a Unity Editor run |
+| Browser engine tests | 17 passed | Selection/retracing, combos, score boundaries, Trie, heap, adjacency, board generation and full dictionary |
+| Unity source compilation | Passed | Runtime and editor assemblies; expected inspector-field warnings remain |
+| Browser interactions | Checked | Invalid-word recovery, tap undo, held-mouse retracing, live combo feedback, round expiry and earlier persistence/responsive checks |
+| Native player/Play Mode | Blocked | Requires licence activation and follow-up testing |
+
+```powershell
+./QA/Run-CoreTests.ps1
+./QA/Compile-UnitySources.ps1
+node --test Play/engine.test.mjs
+```
+
+The C# helper scripts use the installed Windows Unity/Mono toolchain; see their paths before running on another machine. Historical QA artifacts are preserved and are not represented as fresh execution results. Read [QA/Verification-2026-10-04.md](QA/Verification-2026-10-04.md) and [QA/SelectionComboRegression.md](QA/SelectionComboRegression.md) for evidence and remaining checks.

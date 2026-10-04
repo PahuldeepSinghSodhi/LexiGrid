@@ -23,10 +23,10 @@ namespace LexiGrid.UI
         public bool IsUsed => _isUsed;
         public bool IsSelected => _isSelected;
 
-        private static readonly Color DefaultColor = Color.white;
-        private static readonly Color SelectedColor = new Color(0.6f, 0.85f, 1f);
-        private static readonly Color ValidColor = new Color(0.5f, 1f, 0.5f);
-        private static readonly Color InvalidColor = new Color(1f, 0.5f, 0.5f);
+        private static readonly Color DefaultColor = new Color(0.14f, 0.19f, 0.27f);
+        private static readonly Color SelectedColor = new Color(0.25f, 0.39f, 0.48f);
+        private static readonly Color ValidColor = new Color(0.2f, 0.78f, 0.62f);
+        private static readonly Color InvalidColor = new Color(0.75f, 0.24f, 0.33f);
         private static readonly Color UsedColor = new Color(0.7f, 0.7f, 0.7f, 0.5f);
 
         /// <summary>
@@ -56,6 +56,7 @@ namespace LexiGrid.UI
         public void SetValidState(bool isValid)
         {
             _backgroundImage.color = isValid ? ValidColor : InvalidColor;
+            _letterText.color = isValid ? new Color(0.03f, 0.12f, 0.14f) : Color.white;
         }
 
         /// <summary>
@@ -88,6 +89,7 @@ namespace LexiGrid.UI
 
         private void UpdateColor()
         {
+            _letterText.color = new Color(0.94f, 0.97f, 1f);
             if (_isUsed)
             {
                 _backgroundImage.color = UsedColor;
