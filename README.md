@@ -67,3 +67,16 @@ node --test Play/engine.test.mjs
 ```
 
 The C# helper scripts use the installed Windows Unity/Mono toolchain; see their paths before running on another machine. Historical QA artifacts are preserved and are not represented as fresh execution results. Read [QA/Verification-2026-10-04.md](QA/Verification-2026-10-04.md) and [QA/SelectionComboRegression.md](QA/SelectionComboRegression.md) for evidence and remaining checks.
+
+## Measured lookup performance — 15 October 2026
+
+The unchanged C# Trie was benchmarked against early-exit linear scans over the bundled **358,612-word dictionary**. Two fresh .NET processes each ran five measured rounds using 1,024 queries per workload, split evenly between hits and misses.
+
+- Exact-word lookup: **2,844-3,100x** faster than the linear baseline.
+- Prefix lookup: **5,436-6,942x** faster than the linear baseline.
+- Both correspond to **over 99.9% lower lookup time in this controlled C#/.NET microbenchmark**. These are not whole-game or Unity browser latency improvements.
+- A HashSet was about **5x faster than Trie for exact membership**. The Trie additionally supplies prefix checks used by live validation and board-search pruning.
+
+Read the [methodology, limitations and reproduction command](QA/Benchmarks/2026-10-15/README.md), inspect the [raw samples](QA/Benchmarks/2026-10-15/results.json), or use the [resume fact sheet](QA/Resume-Facts-2026-10-15.md).
+
+Fresh core verification: **62 NUnit/Mono cases passed**. This is not a Unity Editor/Play Mode test run. The 25-case manual plan still records Not Run; its existence does not establish execution. This findings-only update does not alter gameplay or publish the separate Unity website migration.

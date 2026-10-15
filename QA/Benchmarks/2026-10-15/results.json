@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-15",
+  "cpu": "Intel Core i7-13700HX",
+  "runtime": ".NET 10.0.11",
+  "seed": 20261015,
+  "dictionaryWords": 358612,
+  "queriesPerWorkload": 1024,
+  "hitPercent": 50,
+  "roundsPerProcess": 5,
+  "processes": 2,
+  "fastMethodRepetitions": 100,
+  "linearMethodRepetitions": 1,
+  "units": "Milliseconds per 1024-query batch; fast-method elapsed time divided by 100",
+  "correctness": "All compared exact/prefix results agreed; each batch returned 512 hits",
+  "dictionarySha256": "BA199AE409062E1D85CDE75747F94206460706BC994BB17AD84939D18DD3867E",
+  "trieSha256": "6F56EE48D05E8DAB199B19B498CB82EF40D0E505E016DCCB871E02076EF3ABD0",
+  "trieNodeSha256": "F897744BF6C29B08535CD6FDFC19807AAD45C5C4A0B707066A4BD2B8637B411E",
+  "run1": {
+    "Runtime": ".NET 10.0.11",
+    "TrieBuildMs": 641.9111,
+    "HashSetBuildMs": 12.5504,
+    "ExactLinearMs": [
+      679.6133,
+      659.8588,
+      698.8151,
+      684.5558,
+      714.0123
+    ],
+    "ExactTrieMs": [
+      0.314976,
+      0.223713,
+      0.352864,
+      0.240695,
+      0.238349
+    ],
+    "ExactHashSetMs": [
+      0.061218,
+      0.047086,
+      0.087964,
+      0.038628,
+      0.038061
+    ],
+    "PrefixLinearMs": [
+      584.3244,
+      584.1195,
+      710.2366,
+      692.7271,
+      610.084
+    ],
+    "PrefixTrieMs": [
+      0.087778,
+      0.085622,
+      0.093789,
+      0.151131,
+      0.087881
+    ]
+  },
+  "run2": {
+    "Runtime": ".NET 10.0.11",
+    "TrieBuildMs": 610.5138,
+    "HashSetBuildMs": 13.7939,
+    "ExactLinearMs": [
+      880.3775,
+      783.2401,
+      746.3422,
+      942.8564,
+      809.2301
+    ],
+    "ExactTrieMs": [
+      0.261033,
+      0.249456,
+      0.283653,
+      0.251488,
+      0.40089
+    ],
+    "ExactHashSetMs": [
+      0.075815,
+      0.074073,
+      0.052006,
+      0.039191,
+      0.039037
+    ],
+    "PrefixLinearMs": [
+      781.8628,
+      718.3405,
+      840.6723,
+      782.5455,
+      839.5508
+    ],
+    "PrefixTrieMs": [
+      0.265583,
+      0.097119,
+      0.143944,
+      0.152739,
+      0.112686
+    ]
+  },
+  "summary": [
+    {
+      "ExactSpeedup": 2844.0798520949747,
+      "ExactReductionPercent": 99.96483924319975,
+      "PrefixSpeedup": 6942.160421479045,
+      "PrefixReductionPercent": 99.98559526229175,
+      "HashSetExactSpeedupOverTrie": 5.111816675869685
+    },
+    {
+      "ExactSpeedup": 3100.106499944451,
+      "ExactReductionPercent": 99.96774304366582,
+      "PrefixSpeedup": 5436.457928083143,
+      "PrefixReductionPercent": 99.98160567021343,
+      "HashSetExactSpeedupOverTrie": 5.0192862362035155
+    }
+  ]
+}
